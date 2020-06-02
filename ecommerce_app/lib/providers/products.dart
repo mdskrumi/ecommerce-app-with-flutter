@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import './product.dart';
 
 class Products with ChangeNotifier {
   List<Product> _items = [
-    Product(
+    /*Product(
       id: 'p1',
       title: 'Red Shirt',
       description: 'A red shirt - it is pretty red!',
@@ -34,7 +38,7 @@ class Products with ChangeNotifier {
       price: 49.99,
       imageUrl:
           'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
-    ),
+    ),*/
   ];
 
   List<Product> get items {
@@ -49,20 +53,85 @@ class Products with ChangeNotifier {
     return items.firstWhere((p) => p.id == id);
   }
 
-  void addProduct(value) {
-    _items.insert(0, value);
-    notifyListeners();
+  Future<void> fetchAndSetProducts() async {
+    const url = "https://my-flutter-project-88b3e.firebaseio.com/products.json";
+    try {
+      final response = await http.get(url);
+      final receivedData = json.decode(response.body) as Map<String, dynamic>;
+
+      print(response.body);
+      List<Product> fetchedProducts = [];
+      receivedData.forEach((productId, productData) {
+        fetchedProducts.add(Product(
+            id: productId,
+            title: productData['title'],
+            description: productData['description'],
+            price: productData['price'],
+            imageUrl: productData['imageUrl'],
+            isFavorite: productData['isFavorite']));
+      });
+      _items = fetchedProducts;
+      notifyListeners();
+    } catch (error) {
+      print("The Error: " + error.toString());
+      throw error;
+    }
   }
 
-  void updateProduct(Product product) {
+  Future<void> addProduct(Product product) async {
+    const url = "https://my-flutter-project-88b3e.firebaseio.com/products.json";
+    try {
+      final response = await http.post(
+        url,
+        body: jsonEncode({
+          'title': product.title,
+          'price': product.price,
+          'imageUrl': product.imageUrl,
+          'description': product.description,
+          'isFavorite': product.isFavorite,
+        }),
+      );
+      final newProduct = Product(
+        id: jsonDecode(response.body)['name'],
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        isFavorite: product.isFavorite,
+      );
+      _items.insert(0, newProduct);
+      notifyListeners();
+    } catch (error) {
+      print("Error is: " + error.toString());
+      throw error;
+    }
+  }
+
+  Future<void> updateProduct(Product product) async {
+    final id = product.id;
+    final url =
+        "https://my-flutter-project-88b3e.firebaseio.com/products/$id.json";
+
+    try {
+      await http.patch(url,
+          body: json.encode({
+            'title': product.title,
+            "description": product.description,
+            'price': product.price,
+            'imageUrl': product.imageUrl,
+          }));
+    } catch (error) {
+      print("The Error in UpdateProduct Function: " + error.toString());
+      throw error;
+    }
+
     final index = _items.indexWhere((element) => element.id == product.id);
     _items[index] = product;
     notifyListeners();
   }
 
-  void deleteProduct(productId){
+  void deleteProduct(productId) {
     _items.removeWhere((element) => element.id == productId);
     notifyListeners();
   }
-
 }
