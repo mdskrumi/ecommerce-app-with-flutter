@@ -32,17 +32,20 @@ class CartScreen extends StatelessWidget {
                   ),
                   Spacer(),
                   Chip(
-                    label: Text(
-                      "\$${cart.totalAmount}",
-                      style: TextStyle(
-                        color: Theme.of(context).primaryTextTheme.title.color,
+                    label: FittedBox(
+                      child: Text(
+                        "\$${cart.totalAmount}",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     backgroundColor: Theme.of(context).primaryColor,
                   ),
                   FlatButton(
                     onPressed: () {
-                      orderData.addOrder(cart.items.values.toList(), cart.totalAmount);
+                      orderData.addOrder(
+                          cart.items.values.toList(), cart.totalAmount);
                       cart.clear();
                     },
                     child: Text(

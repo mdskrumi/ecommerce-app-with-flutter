@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:ecommerce_app/models/htttp_Exception.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class CartItem {
   final String id;
@@ -21,6 +25,33 @@ class Cart with ChangeNotifier {
     return _items;
   }
 
+  Future<void> fetchAndSetData() async {
+    final url = "https://my-flutter-project-88b3e.firebaseio.com/cart.json";
+
+    try {
+      final response = await http.get(url);
+      final fetchedData = json.decode(response.body) as Map<String, dynamic>;
+      Map<String, CartItem> loadedData = {};
+      fetchedData.forEach((productId, itemInCart) {
+        itemInCart.forEach((cartId, cartItem) {
+          loadedData.putIfAbsent(
+              productId,
+              () => CartItem(
+                    id: cartId,
+                    title: cartItem['title'],
+                    price: cartItem['price'],
+                    quantity: cartItem['quantity'],
+                  ));
+        });
+      });
+
+      _items = loadedData;
+      notifyListeners();
+    } catch (error) {
+      print(error);
+    }
+  }
+
   int get Count {
     int len = 0;
     _items.forEach((k, v) => len += v.quantity);
@@ -33,52 +64,102 @@ class Cart with ChangeNotifier {
     return ta;
   }
 
-  void addItem(String productId, String title, double price) {
-    if (_items.containsKey(productId)) {
-      _items.update(
-        productId,
-        (item) => CartItem(
-          id: item.id,
-          title: item.title,
-          price: item.price,
-          quantity: item.quantity + 1,
-        ),
-      );
-    } else {
-      _items.putIfAbsent(
-        productId,
-        () => CartItem(
-          id: DateTime.now().toString(),
-          title: title,
-          price: price,
-          quantity: 1,
-        ),
-      );
-    }
-    notifyListeners();
-  }
+  Future<void> addItem(String productId, String title, double price) async {
+    var url =
+        "https://my-flutter-project-88b3e.firebaseio.com/cart/$productId.json";
 
-  void undoAddItem(String productId) {
     if (_items.containsKey(productId)) {
-      if (_items[productId].quantity > 1) {
+      CartItem item = _items[productId];
+      String itemId = item.id;
+      var url =
+          "https://my-flutter-project-88b3e.firebaseio.com/cart/$productId/$itemId.json";
+      try {
+        final response = await http.patch(url,
+            body: json.encode({
+              'title': title,
+              'price': price,
+              'quantity': item.quantity + 1,
+            }));
         _items.update(
           productId,
-          (currentItem) => CartItem(
-              id: currentItem.id,
-              title: currentItem.title,
-              price: currentItem.price,
-              quantity: currentItem.quantity - 1),
+          (item) => CartItem(
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity + 1,
+          ),
         );
-      } else {
-        _items.remove(productId);
+        notifyListeners();
+      } catch (error) {
+        throw error;
+      }
+    } else {
+      try {
+        final response = await http.post(url,
+            body: json.encode({
+              'title': title,
+              'price': price,
+              'quantity': 1,
+            }));
+        _items.putIfAbsent(
+          productId,
+          () => CartItem(
+            id: json.decode(response.body)['name'],
+            title: title,
+            price: price,
+            quantity: 1,
+          ),
+        );
+        notifyListeners();
+      } catch (error) {
+        throw error;
       }
     }
-    notifyListeners();
   }
 
-  void deleteItem(productId) {
+  Future undoAddItem(String productId) async {
+    if (_items.containsKey(productId)) {
+      if (_items[productId].quantity > 1) {
+        final itemId = _items[productId].id;
+        var url =
+            "https://my-flutter-project-88b3e.firebaseio.com/cart/$productId/$itemId.json";
+        try {
+          final response = await http.patch(url,
+              body: json.encode({
+                'quantity': _items[productId].quantity - 1,
+              }));
+          _items.update(
+            productId,
+            (item) => CartItem(
+              id: item.id,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity - 1,
+            ),
+          );
+          notifyListeners();
+        } catch (error) {
+          throw error;
+        }
+      } else {
+        deleteItem(productId);
+      }
+    }
+  }
+
+  Future<void> deleteItem(productId) async {
+    var url =
+        "https://my-flutter-project-88b3e.firebaseio.com/cart/$productId.json";
+
+    final existingItem = _items[productId];
     _items.remove(productId);
     notifyListeners();
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      _items.addAll({productId: existingItem});
+      notifyListeners();
+      throw HttpException("Fialed");
+    }
   }
 
   void clear() {

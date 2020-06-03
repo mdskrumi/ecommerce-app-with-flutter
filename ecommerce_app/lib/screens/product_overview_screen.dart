@@ -43,6 +43,9 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    Provider.of<Cart>(context, listen: false).fetchAndSetData();
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Products"),

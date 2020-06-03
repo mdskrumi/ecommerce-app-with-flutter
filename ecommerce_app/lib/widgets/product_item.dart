@@ -18,6 +18,8 @@ class ProductItem extends StatelessWidget {
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
 
+    final scaffold = Scaffold.of(context);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(15),
       child: GestureDetector(
@@ -40,8 +42,14 @@ class ProductItem extends StatelessWidget {
                           ? Icons.favorite
                           : Icons.favorite_border,
                     ),
-                    onPressed: () {
-                      product.toggleFavorite();
+                    onPressed: () async {
+                      try {
+                        await product.toggleFavorite();
+                      } catch (error) {
+                        scaffold.showSnackBar(SnackBar(
+                          content: Text('Facing Error'),
+                        ));
+                      }
                     },
                   ),
                 ),
@@ -60,21 +68,31 @@ class ProductItem extends StatelessWidget {
                 child: IconButton(
                   color: Theme.of(context).accentColor,
                   icon: Icon(Icons.shopping_cart),
-                  onPressed: () {
-                    cart.addItem(product.id, product.title, product.price);
-                    Scaffold.of(context).hideCurrentSnackBar();
-                    Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("New Item Added"),
-                        duration: Duration(seconds: 2),
-                        action: SnackBarAction(
-                          label: "UNDO",
-                          onPressed: () {
-                            cart.undoAddItem(product.id);
-                          },
+                  onPressed: () async {
+                    try {
+                      await cart.addItem(
+                          product.id, product.title, product.price);
+                      scaffold.hideCurrentSnackBar();
+                      scaffold.showSnackBar(
+                        SnackBar(
+                          content: Text("New Item Added"),
+                          duration: Duration(seconds: 2),
+                          action: SnackBarAction(
+                            label: "UNDO",
+                            onPressed: () {
+                              cart.undoAddItem(product.id);
+                            },
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } catch (error) {
+                      scaffold.showSnackBar(
+                        SnackBar(
+                          content: Text("Something went wrong!!!"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   },
                 ),
               ),
