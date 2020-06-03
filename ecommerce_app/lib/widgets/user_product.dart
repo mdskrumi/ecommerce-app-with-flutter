@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../screens/edit_product_screen.dart';
 import '../providers/products.dart';
 
-
 class UserProduct extends StatelessWidget {
   final String id;
   final String title;
@@ -13,6 +12,7 @@ class UserProduct extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaffold = Scaffold.of(context);
     return LayoutBuilder(
       builder: (_, constraints) {
         print(constraints.maxWidth);
@@ -55,10 +55,21 @@ class UserProduct extends StatelessWidget {
                                   color: Colors.red,
                                   fontWeight: FontWeight.bold),
                             ),
-                            onPressed: () {
-                              Provider.of<Products>(context, listen: false).deleteProduct(id);
+                            onPressed: () async {
+                              try {
+                                await Provider.of<Products>(context,
+                                        listen: false)
+                                    .deleteProduct(id);
+                                    scaffold.showSnackBar(SnackBar(
+                                  content: Text("Deleted" , textAlign: TextAlign.center,),
+                                ));
+                              } catch (error) {
+                                scaffold.showSnackBar(SnackBar(
+                                  content: Text(error.toString(),textAlign: TextAlign.center,),
+                                ));
+                              }
                               Navigator.of(ctx).pop(true);
-                            } ,
+                            },
                           ),
                           FlatButton(
                             child: Text(
