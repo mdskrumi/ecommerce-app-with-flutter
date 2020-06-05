@@ -24,16 +24,23 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   bool _isFavOnly = false;
   bool _init = true;
   bool _isLoading = false;
+  bool _isLoadingCartIcon = false;
 
   @override
   void didChangeDependencies() {
     if (_init) {
       setState(() {
         _isLoading = true;
+        _isLoadingCartIcon = true;
       });
       Provider.of<Products>(context).fetchAndSetProducts().then((_) {
         setState(() {
           _isLoading = false;
+        });
+      });
+      Provider.of<Cart>(context, listen: false).fetchAndSetData().then((_) {
+        setState(() {
+          _isLoadingCartIcon = false;
         });
       });
     }
@@ -43,9 +50,6 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    Provider.of<Cart>(context, listen: false).fetchAndSetData();
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Products"),
@@ -73,20 +77,24 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
               });
             },
           ),
-          Consumer<Cart>(
-            builder: (_, cart, ch) => Badge(
-              child: ch,
-              value: cart.Count.toString(),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.shopping_cart),
-              onPressed: () {
-                Navigator.of(context).pushNamed(
-                  CartScreen.routeName,
-                );
-              },
-            ),
-          )
+          _isLoadingCartIcon
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : Consumer<Cart>(
+                  builder: (_, cart, ch) => Badge(
+                    child: ch,
+                    value: cart.count.toString(),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.shopping_cart),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        CartScreen.routeName,
+                      );
+                    },
+                  ),
+                )
         ],
       ),
       drawer: AppDrawer(),

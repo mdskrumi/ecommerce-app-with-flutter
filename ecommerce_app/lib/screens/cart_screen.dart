@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/order.dart';
 import '../providers/cart.dart' show Cart;
 import '../widgets/cart_item.dart';
+import '../widgets/order_button.dart';
 
 class CartScreen extends StatelessWidget {
   static const routeName = '/cart_screen';
@@ -11,7 +12,8 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<Cart>(context);
-    final orderData = Provider.of<Order>(context);
+    final orderData = Provider.of<Order>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Cart"),
@@ -42,19 +44,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     backgroundColor: Theme.of(context).primaryColor,
                   ),
-                  FlatButton(
-                    onPressed: () {
-                      orderData.addOrder(
-                          cart.items.values.toList(), cart.totalAmount);
-                      cart.clear();
-                    },
-                    child: Text(
-                      "ORDER NOW",
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                  ),
+                  OrderBUtton(),
                 ],
               ),
             ),

@@ -79,8 +79,14 @@ class ProductItem extends StatelessWidget {
                           duration: Duration(seconds: 2),
                           action: SnackBarAction(
                             label: "UNDO",
-                            onPressed: () {
-                              cart.undoAddItem(product.id);
+                            onPressed: () async {
+                              try {
+                                await cart.undoAddItem(product.id);
+                              } catch (error) {
+                                scaffold.showSnackBar(SnackBar(
+                                  content: Text('Facing Error'),
+                                ));
+                              }
                             },
                           ),
                         ),
