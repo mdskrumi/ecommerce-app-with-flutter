@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/product.dart';
 import '../screens/product_detail_screen.dart';
 import '../providers/cart.dart';
+import '../providers/auth.dart';
+
 
 class ProductItem extends StatelessWidget {
   void selectedProduct(BuildContext context, String id) {
@@ -17,6 +19,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
+    final auth = Provider.of<Auth>(context, listen: false);
 
     final scaffold = Scaffold.of(context);
 
@@ -44,7 +47,7 @@ class ProductItem extends StatelessWidget {
                     ),
                     onPressed: () async {
                       try {
-                        await product.toggleFavorite();
+                        await product.toggleFavorite(auth.token, auth.userId);
                       } catch (error) {
                         scaffold.showSnackBar(SnackBar(
                           content: Text('Facing Error'),

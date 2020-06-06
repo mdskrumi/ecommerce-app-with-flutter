@@ -20,21 +20,17 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavorite() async {
+  Future<void> toggleFavorite(auth, userId) async {
     final url =
-        "https://my-flutter-project-88b3e.firebaseio.com/products/$id.json";
+        "https://my-flutter-project-88b3e.firebaseio.com/userFavorites/$userId/$id.json?auth=$auth";
     isFavorite = !isFavorite;
     notifyListeners();
     try {
-     final response = await http.patch(url,
-          body: json.encode({
-            'title': title,
-            'description': description,
-            'price': price,
-            'imageUrl': imageUrl,
-            'isFavorite': isFavorite,
-          }));
-        //print(response.body);
+      final response = await http.put(url,
+          body: json.encode(
+            isFavorite,
+          ));
+      //print(response.body);
     } catch (error) {
       isFavorite = !isFavorite;
       print("The Error in toggleFavorite(): " + error.toString());

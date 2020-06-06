@@ -16,13 +16,20 @@ class OrderItem {
 
 class Order with ChangeNotifier {
   List<OrderItem> _orders = [];
+  String _auth;
+
+
+  void setAuth(auth, orders){
+    this._auth = auth;
+    this._orders = orders;
+  }
 
   List<OrderItem> get orders {
     return _orders;
   }
 
   Future<void> fetchAndSetOrderData() async {
-    final url = "https://my-flutter-project-88b3e.firebaseio.com/orders.json";
+    final url = "https://my-flutter-project-88b3e.firebaseio.com/orders.json?auth=$_auth";
 
     try {
       final response = await http.get(url);
@@ -61,7 +68,7 @@ class Order with ChangeNotifier {
   }
 
   Future<void> addOrder(List<CartItem> products, double total) async {
-    final url = "https://my-flutter-project-88b3e.firebaseio.com/orders.json";
+    final url = "https://my-flutter-project-88b3e.firebaseio.com/orders.json?auth=$_auth";
 
     final datetime = DateTime.now();
 

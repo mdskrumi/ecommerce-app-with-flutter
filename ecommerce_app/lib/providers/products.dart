@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import './product.dart';
 
 class Products with ChangeNotifier {
+  String _auth;
+  String _userId;
   List<Product> _items = [
     /*Product(
       id: 'p1',
@@ -42,6 +44,12 @@ class Products with ChangeNotifier {
     ),*/
   ];
 
+  void setAuth(auth, userId, items) {
+    this._auth = auth;
+    this._items = _items;
+    this._userId = userId;
+  }
+
   List<Product> get items {
     return _items;
   }
@@ -55,21 +63,35 @@ class Products with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProducts() async {
-    const url = "https://my-flutter-project-88b3e.firebaseio.com/products.json";
+    var url =
+        'https://my-flutter-project-88b3e.firebaseio.com/products.json?auth=$_auth&orderBy="creatorId"&equalTo="$_userId"';
     try {
       final response = await http.get(url);
       final receivedData = json.decode(response.body) as Map<String, dynamic>;
 
-      print(response.body);
+      if (receivedData == null) {
+        return;
+      }
+      print(receivedData);
+
+      url =
+          "https://my-flutter-project-88b3e.firebaseio.com/userFavorites/$_userId.json?auth=$_auth";
+      final favoriteResponse = await http.get(url);
+      final favoriteData = json.decode(favoriteResponse.body);
+
       List<Product> fetchedProducts = [];
       receivedData.forEach((productId, productData) {
-        fetchedProducts.add(Product(
+        fetchedProducts.add(
+          Product(
             id: productId,
             title: productData['title'],
             description: productData['description'],
             price: productData['price'],
             imageUrl: productData['imageUrl'],
-            isFavorite: productData['isFavorite']));
+            isFavorite:
+                favoriteData == null ? false : favoriteData[productId] ?? false,
+          ),
+        );
       });
       _items = fetchedProducts;
       notifyListeners();
@@ -80,17 +102,20 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProduct(Product product) async {
-    const url = "https://my-flutter-project-88b3e.firebaseio.com/products.json";
+    final url =
+        "https://my-flutter-project-88b3e.firebaseio.com/products.json?auth=$_auth";
     try {
       final response = await http.post(
         url,
-        body: jsonEncode({
-          'title': product.title,
-          'price': product.price,
-          'imageUrl': product.imageUrl,
-          'description': product.description,
-          'isFavorite': product.isFavorite,
-        }),
+        body: jsonEncode(
+          {
+            'title': product.title,
+            'price': product.price,
+            'imageUrl': product.imageUrl,
+            'description': product.description,
+            'creatorId': _userId,
+          },
+        ),
       );
       final newProduct = Product(
         id: jsonDecode(response.body)['name'],
@@ -111,7 +136,7 @@ class Products with ChangeNotifier {
   Future<void> updateProduct(Product product) async {
     final id = product.id;
     final url =
-        "https://my-flutter-project-88b3e.firebaseio.com/products/$id.json";
+        "https://my-flutter-project-88b3e.firebaseio.com/products/$id.json?auth=$_auth";
 
     try {
       await http.patch(url,
@@ -133,14 +158,15 @@ class Products with ChangeNotifier {
 
   Future<void> deleteProduct(id) async {
     final url =
-        "https://my-flutter-project-88b3e.firebaseio.com/products/$id.json";
-    final existingProductIndex = _items.indexWhere((element) => element.id == id);
+        "https://my-flutter-project-88b3e.firebaseio.com/products/$id.json?auth=$_auth";
+    final existingProductIndex =
+        _items.indexWhere((element) => element.id == id);
     var existingProduct = _items[existingProductIndex];
     _items.removeAt(existingProductIndex);
     notifyListeners();
     final response = await http.delete(url);
 
-    if(response.statusCode >= 400){
+    if (response.statusCode >= 400) {
       _items.insert(existingProductIndex, existingProduct);
       notifyListeners();
       throw HttpException("Could not delete the item");
