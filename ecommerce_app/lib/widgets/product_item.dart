@@ -7,7 +7,6 @@ import '../providers/product.dart';
 import '../providers/cart.dart';
 import '../providers/auth.dart';
 
-
 class ProductItem extends StatelessWidget {
   void selectedProduct(BuildContext context, String id) {
     Navigator.of(context).pushNamed(
@@ -29,9 +28,15 @@ class ProductItem extends StatelessWidget {
       child: GestureDetector(
         onTap: () => selectedProduct(context, product.id),
         child: GridTile(
-          child: Image.network(
-            product.imageUrl,
-            fit: BoxFit.cover,
+          child: Hero(
+            tag: product.id,
+            child: FadeInImage(
+              placeholder: AssetImage("assets/images/product_placeholder.png"),
+              image: NetworkImage(
+                product.imageUrl,
+              ),
+              fit: BoxFit.cover,
+            ),
           ),
           footer: LayoutBuilder(
             builder: (ctx, constraints) => GridTileBar(

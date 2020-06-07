@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
 import '../providers/order.dart';
 
 class OrderItemLayout extends StatefulWidget {
@@ -40,23 +39,27 @@ class _OrderItemLayoutState extends State<OrderItemLayout> {
               },
             ),
           ),
-          if (_expanded)
-            Container(
-              height: min(widget.orderItem.products.length * 20.0 + 100, 100),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              child: ListView.builder(
-                itemCount: widget.orderItem.products.length,
-                itemBuilder: (ctx, i) {
-                  return Row(
-                    children: <Widget>[
-                      Text(widget.orderItem.products[i].title),
-                      Spacer(),
-                      Text(widget.orderItem.products[i].quantity.toString() + " X " + widget.orderItem.products[i].price.toString())
-                    ],
-                  );
-                },
-              ),
-            )
+          AnimatedContainer(
+            duration: Duration(milliseconds: 450),
+            height: _expanded
+                ? min(widget.orderItem.products.length * 20.0 + 100, 90)
+                : 0,
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: ListView.builder(
+              itemCount: widget.orderItem.products.length,
+              itemBuilder: (ctx, i) {
+                return Row(
+                  children: <Widget>[
+                    Text(widget.orderItem.products[i].title),
+                    Spacer(),
+                    Text(widget.orderItem.products[i].quantity.toString() +
+                        " X " +
+                        widget.orderItem.products[i].price.toString())
+                  ],
+                );
+              },
+            ),
+          )
         ],
       ),
     );

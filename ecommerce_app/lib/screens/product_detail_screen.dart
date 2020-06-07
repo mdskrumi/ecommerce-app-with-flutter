@@ -32,7 +32,14 @@ class ProductDetailScreen extends StatelessWidget {
                   Container(
                     height: MediaQuery.of(context).size.height * .5,
                     child: ClipOval(
-                      child: Image.network(loadedProduct.imageUrl),
+                      child: Hero(
+                          tag: loadedProduct.id,
+                          child: FadeInImage(
+                            placeholder: AssetImage(
+                              "assets/images/product_placeholder.png",
+                            ),
+                            image: NetworkImage(loadedProduct.imageUrl),
+                          )),
                       key: ValueKey(loadedProduct.id),
                     ),
                   ),
