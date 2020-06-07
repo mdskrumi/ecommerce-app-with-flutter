@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:intl/intl.dart';
+
 import '../providers/products.dart';
 import '../widgets/badge.dart';
 import '../widgets/appdrawer.dart';
 import '../providers/cart.dart';
+import '../providers/auth.dart';
 import '../widgets/product_Grid.dart';
 import '../screens/cart_screen.dart';
 
@@ -36,17 +39,47 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
       Provider.of<Products>(context).fetchAndSetProducts().then((_) {
         setState(() {
           _isLoading = false;
-          print("Herer");
         });
+        showRemainingTime();
       });
       Provider.of<Cart>(context, listen: false).fetchAndSetData().then((_) {
         setState(() {
           _isLoadingCartIcon = false;
         });
       });
+      //showRemainingTime();
     }
     _init = false;
     super.didChangeDependencies();
+  }
+
+  void showRemainingTime() {
+    final authDateTime = Provider.of<Auth>(context, listen: false).datetime;
+    /*Scaffold.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Auto Logout in " + DateFormat('m').format(authDateTime) + " minutes",
+        ),
+      ),
+    );*/
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Auto Log out"),
+        content: Text(
+          "Auto Logout in " + authDateTime.difference(DateTime.now()).inMinutes.toString() + " minutes",
+        ),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: Text("Okay"),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -95,7 +128,7 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
                       );
                     },
                   ),
-                )
+                ),
         ],
       ),
       drawer: AppDrawer(),

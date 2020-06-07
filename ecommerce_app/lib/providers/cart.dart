@@ -21,9 +21,11 @@ class CartItem {
 class Cart with ChangeNotifier {
   Map<String, CartItem> _items = {};
   String _auth;
+  String _userId;
 
-  void setAuth(auth, items){
+  void setAuth(auth, userId, items){
     this._auth = auth;
+    this._userId = userId;
     this._items = items;
   }
 
@@ -32,7 +34,7 @@ class Cart with ChangeNotifier {
   }
 
   Future<void> fetchAndSetData() async {
-    final url = "https://my-flutter-project-88b3e.firebaseio.com/carts.json?auth=$_auth";
+    final url = "https://my-flutter-project-88b3e.firebaseio.com/carts/$_userId.json?auth=$_auth";
 
     try {
       final response = await http.get(url);
@@ -72,13 +74,13 @@ class Cart with ChangeNotifier {
 
   Future<void> addItem(String productId, String title, double price) async {
     var url =
-        "https://my-flutter-project-88b3e.firebaseio.com/carts/$productId.json?auth=$_auth";
+        "https://my-flutter-project-88b3e.firebaseio.com/carts/$_userId/$productId.json?auth=$_auth";
 
     if (_items.containsKey(productId)) {
       CartItem item = _items[productId];
       String itemId = item.id;
       var url =
-          "https://my-flutter-project-88b3e.firebaseio.com/carts/$productId/$itemId.json?auth=$_auth";
+          "https://my-flutter-project-88b3e.firebaseio.com/carts/$_userId/$productId/$itemId.json?auth=$_auth";
       try {
         await http.patch(url,
             body: json.encode({
@@ -128,7 +130,7 @@ class Cart with ChangeNotifier {
       if (_items[productId].quantity > 1) {
         final itemId = _items[productId].id;
         var url =
-            "https://my-flutter-project-88b3e.firebaseio.com/carts/$productId/$itemId.json?auth=$_auth";
+            "https://my-flutter-project-88b3e.firebaseio.com/carts/$_userId/$productId/$itemId.json?auth=$_auth";
         try {
           await http.patch(url,
               body: json.encode({
@@ -155,7 +157,7 @@ class Cart with ChangeNotifier {
 
   Future<void> deleteItem(productId) async {
     var url =
-        "https://my-flutter-project-88b3e.firebaseio.com/carts/$productId.json?auth=$_auth";
+        "https://my-flutter-project-88b3e.firebaseio.com/carts/$_userId/$productId.json?auth=$_auth";
 
     final existingItem = _items[productId];
     _items.remove(productId);
@@ -170,7 +172,7 @@ class Cart with ChangeNotifier {
 
   Future<void> clear() async {
     final url =
-        "https://my-flutter-project-88b3e.firebaseio.com/carts.json?auth=$_auth";
+        "https://my-flutter-project-88b3e.firebaseio.com/carts/$_userId.json?auth=$_auth";
 
     final response = await http.delete(url);
     if(response.statusCode>=400){

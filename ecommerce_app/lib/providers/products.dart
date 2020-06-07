@@ -62,9 +62,12 @@ class Products with ChangeNotifier {
     return items.firstWhere((p) => p.id == id);
   }
 
-  Future<void> fetchAndSetProducts() async {
+  Future<void> fetchAndSetProducts([filter = false]) async {
+    final filterSegment =
+        (filter) ? '&orderBy="creatorId"&equalTo="$_userId"' : '';
+
     var url =
-        'https://my-flutter-project-88b3e.firebaseio.com/products.json?auth=$_auth&orderBy="creatorId"&equalTo="$_userId"';
+        'https://my-flutter-project-88b3e.firebaseio.com/products.json?auth=$_auth$filterSegment';
     try {
       final response = await http.get(url);
       final receivedData = json.decode(response.body) as Map<String, dynamic>;
@@ -72,8 +75,6 @@ class Products with ChangeNotifier {
       if (receivedData == null) {
         return;
       }
-      print(receivedData);
-
       url =
           "https://my-flutter-project-88b3e.firebaseio.com/userFavorites/$_userId.json?auth=$_auth";
       final favoriteResponse = await http.get(url);

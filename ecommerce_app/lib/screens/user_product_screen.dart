@@ -10,12 +10,12 @@ class UserProductScreen extends StatelessWidget {
   static final routeName = "/user_screen";
 
   Future<void> _refreshData(BuildContext context) async {
-    await Provider.of<Products>(context, listen: false).fetchAndSetProducts();
+    await Provider.of<Products>(context, listen: false)
+        .fetchAndSetProducts(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProduct = Provider.of<Products>(context).items;
     return Scaffold(
       appBar: AppBar(
         title: Text("Your Product"),
@@ -29,17 +29,38 @@ class UserProductScreen extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshData(context),
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: ListView.builder(
-            itemCount: userProduct.length,
-            itemBuilder: (_, i) => UserProduct(userProduct[i].id,
-                userProduct[i].title, userProduct[i].imageUrl),
-          ),
-        ),
-      ),
+      body: FutureBuilder(
+          future: Provider.of<Products>(context, listen: false)
+              .fetchAndSetProducts(true),
+          builder: (ctx, dataSnapshot) {
+            if (dataSnapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              if (dataSnapshot.error == null) {
+                return RefreshIndicator(
+                  onRefresh: () => _refreshData(context),
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Consumer<Products>(
+                      builder: (ctx, userProduct, _) => ListView.builder(
+                        itemCount: userProduct.items.length,
+                        itemBuilder: (_, i) => UserProduct(
+                            userProduct.items[i].id,
+                            userProduct.items[i].title,
+                            userProduct.items[i].imageUrl),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return Center(
+                  child: Text("An Error Occured"),
+                );
+              }
+            }
+          }),
     );
   }
 }
