@@ -23,7 +23,9 @@ class OrderScreen extends StatelessWidget {
             } else {
               if (dataScapshot.error != null) {
                 /* ------ ERROR-------*/
-                return Center(child: Text("An error Occured"));
+                return Center(
+                  child: Text("No Order is Issued"),
+                );
               } else {
                 return Consumer<Order>(
                   builder: (ctx, orderData, ch) => ListView.builder(
