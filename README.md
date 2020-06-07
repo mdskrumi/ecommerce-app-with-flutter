@@ -1,6 +1,6 @@
 # ecommerce_app
 
-A new Flutter project.
+An Ecommerce Mobile application build with flutter using firebase database.
 
 ## Getting Started
 
