@@ -16,7 +16,6 @@ class AppDrawer extends StatelessWidget {
             title: Text("Options"),
             automaticallyImplyLeading: false,
           ),
-          Divider(),
           ListTile(
             leading: Icon(Icons.shop),
             title: Text("Shop"),
@@ -48,6 +47,7 @@ class AppDrawer extends StatelessWidget {
             title: Text("Log Out"),
             onTap: () {
               Navigator.of(context).pop();
+              Navigator.of(context).pushReplacementNamed('/');
               Provider.of<Auth>(context, listen: false).logOut();
             },
           ),

@@ -51,7 +51,7 @@ class ProductDetailScreen extends StatelessWidget {
                   IconButton(
                     icon: Icon(
                       Icons.shopping_cart,
-                      color: Colors.red,
+                      color: Theme.of(context).accentColor,
                       size: 30,
                     ),
                     onPressed: () {
